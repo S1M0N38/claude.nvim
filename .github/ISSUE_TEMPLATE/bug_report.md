@@ -17,7 +17,7 @@ labels: bug
 >[!IMPORTANT]
 > Please do not skip this step. For most users, issues occur because of their Neovim configuration.
 
-1. Create a repro configuration file [`repro.lua`](../../repro/repro.lua) with minimal configuration for reproducing the bug.
+1. Create a repro configuration file `repro.lua` (see `repro/repro.lua` in the repo) with minimal configuration for reproducing the bug.
 2. Run Neovim using `repro.lua` as config:
 
 ```

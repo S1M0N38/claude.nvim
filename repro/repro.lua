@@ -14,7 +14,7 @@ load(vim.fn.system("curl -s https://raw.githubusercontent.com/folke/lazy.nvim/ma
 local plugins = {
   {
     "S1M0N38/claude.nvim",
-    dir = "/Users/simo/Developer/claude.nvim", -- Full path to your plugin
+    -- dir = "/full/path/to/claude.nvim", -- Uncomment and set to use local version
     lazy = false,
     opts = {},
   },

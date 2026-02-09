@@ -20,11 +20,6 @@ ______________________________________________________________________
 ## Requirements
 
 - **[Neovim](https://github.com/neovim/neovim)** >= 0.11
-- **[luarocks](https://luarocks.org/)**: install Lua packages
-- **[busted](https://lunarmodules.github.io/busted/)**: unit testing framework for Lua
-- **[nlua](https://github.com/mfussenegger/nlua)**: Neovim as Lua interpreter
-- **[lazy.nvim](https://github.com/folke/lazy.nvim)**: plugin manager for Neovim
-- **[lazydev.nvim](https://github.com/folke/lazydev.nvim)** (optional): enhanced plugin dev experience.
 
 ## Installation
 
@@ -36,27 +31,6 @@ ______________________________________________________________________
   branch = "main", -- Select the branch of the plugin to use
   lazy = false,
   opts = {},
-  keys = {
-    {
-      "<leader>rb", -- Choose a key binding for reloading the plugin
-      "<cmd>Lazy reload claude.nvim<cr>",
-      desc = "Reload claude.nvim",
-      mode = { "n", "v" },
-    },
-  },
-}
-
--- Enable Lua language server support external libraries
-{
-  "folke/lazydev.nvim",
-  ft = "lua",
-  opts = {
-    library = {
-      "${3rd}/luassert/library",
-      "${3rd}/busted/library",
-      "claude.nvim",
-    }
-  },
 }
 ```
 
@@ -70,3 +44,5 @@ Get started by reading the comprehensive documentation with [`:help claude`](htt
 ## Acknowledgments
 
 - [base.nvim](https://github.com/S1M0N38/base.nvim): template used to bootstrap this plugin
+- [claudecode.nvim](https://github.com/S1M0N38/claudecode.nvim): Claude integration for Neovim
+- [sidekick.nvim](https://github.com/S1M0N38/sidekick.nvim): AI sidekick plugin for Neovim

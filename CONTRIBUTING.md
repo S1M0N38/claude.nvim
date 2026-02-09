@@ -32,7 +32,7 @@ git checkout -b fix/specific-bug-description
 
 ### Make Your Changes
 
-1. **Write tests**: Add or update tests for your changes in the `spec/` directory
+1. **Write tests**: Add or update tests for your changes in the `tests/` directory
 2. **Update documentation**: Update `doc/claude.txt` and README if needed
 3. **Follow coding standards**: The project uses EditorConfig - your editor should automatically format code correctly
 
@@ -42,7 +42,7 @@ Before submitting, ensure everything works:
 
 ```bash
 # Run all tests
-busted
+make test
 
 # Check health functionality
 nvim -u repro/repro.lua -c "checkhealth claude" -c "q"
