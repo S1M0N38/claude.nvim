@@ -1,13 +1,12 @@
 ---@meta
---- This is a simple "definition file" (https://luals.github.io/wiki/definition-files/),
---- the @meta tag at the top is its hallmark.
 
 -- lua/claude/init.lua -----------------------------------------------------------
 
 ---@class Claude.Plugin
 ---@field setup function setup the plugin with user options
----@field hello function Say hello to the user using configured name
----@field bye function Say goodbye to the user using configured name
+---@field toggle function toggle the Claude floating terminal
+---@field send_selection function send visual selection text to Claude
+---@field send_reference function send file reference with line range to Claude
 
 -- lua/claude/config.lua ---------------------------------------------------------
 
@@ -17,13 +16,53 @@
 ---@field setup function setup the plugin configuration
 
 ---@class Claude.UserOptions
----@field name? string The name of the user to greet (optional)
+---@field cmd? string The command to run (optional, default "claude")
+---@field float? Claude.FloatOptions Floating window options (optional)
+---@field keymaps? Claude.KeymapOptions Keymap configuration (optional)
 
 ---@class Claude.DefaultOptions
----@field name string The default name of the user to greet
+---@field cmd string The command to run
+---@field float Claude.FloatOptions Floating window options
+---@field keymaps Claude.KeymapOptions Keymap configuration
 
 ---@class Claude.Options
----@field name string The name of the user to greet (merged from user/default options)
+---@field cmd string The command to run (merged from user/default options)
+---@field float Claude.FloatOptions Floating window options (merged from user/default options)
+---@field keymaps Claude.KeymapOptions Keymap configuration (merged from user/default options)
+
+---@class Claude.FloatOptions
+---@field width number Width as fraction of editor (0.0-1.0)
+---@field height number Height as fraction of editor (0.0-1.0)
+---@field border string Border style for the floating window
+
+---@class Claude.KeymapOptions
+---@field enabled boolean Whether to set default keymaps
+---@field toggle string Keymap for toggling the terminal
+
+-- lua/claude/terminal.lua -------------------------------------------------------
+
+---@class Claude.Terminal
+---@field open function open the floating terminal
+---@field close function close the floating terminal window
+---@field toggle function toggle the floating terminal
+---@field is_open function check if the terminal window is open
+---@field is_running function check if the terminal process is running
+---@field send function send text to the terminal
+---@field get_buf function get the terminal buffer number
+---@field setup_keymaps function setup terminal-mode keymaps for a buffer
+
+-- lua/claude/send.lua -----------------------------------------------------------
+
+---@class Claude.Send
+---@field get_visual_range function get the visual line range
+---@field get_visual_selection function get the current visual selection
+---@field send_selection function send visual selection text to terminal
+---@field send_reference function send file reference with line range to terminal
+
+-- lua/claude/notify.lua --------------------------------------------------------
+
+---@class Claude.Notify
+---@field from_hook fun(path: string): string process a hook notification from a temp file
 
 -- lua/claude/health.lua ---------------------------------------------------------
 
