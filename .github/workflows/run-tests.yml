@@ -1,7 +1,3 @@
-# nvim-neorocks/nvim-busted-action
-#   A composite GitHub action for running busted tests with Neovim
-#   https://github.com/nvim-neorocks/nvim-busted-action
-
 name: Run tests
 
 on:
@@ -12,19 +8,18 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  test:
     name: Run tests
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        neovim_version: ['stable']
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Run tests
-        uses: nvim-neorocks/nvim-busted-action@v1
-        # env:
-          # If env vars are use in tests, define them here and on GitHub in repo settings
-          # EXAMPLE_ENV_VAR: ${{ secrets.EXAMPLE_ENV_VAR }}
+      - uses: actions/checkout@v4
+
+      - name: Setup Neovim
+        uses: rhysd/action-setup-vim@v1
         with:
-          nvim_version: ${{ matrix.neovim_version }}
+          neovim: true
+          version: stable
+
+      - name: Run tests
+        run: make test
