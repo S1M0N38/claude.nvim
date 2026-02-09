@@ -27,9 +27,8 @@ ______________________________________________________________________
 -- Install and configure your plugin during development
 {
   "S1M0N38/claude.nvim",
-  dir = "/path/to/claude.nvim", -- So we are using the local version of the plugin
-  branch = "main", -- Select the branch of the plugin to use
-  lazy = false,
+  version = "*",
+  event = "VeryLazy",
   opts = {},
 }
 ```
