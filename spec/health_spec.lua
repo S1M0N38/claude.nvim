@@ -1,11 +1,11 @@
-local health = require("base.health")
-local base = require("base")
+local health = require("claude.health")
+local claude = require("claude")
 
 describe("Health Check", function()
   -- Test health check with default configuration
   describe("Default configuration", function()
     before_each(function()
-      base.setup({})
+      claude.setup({})
     end)
 
     it("runs health check without errors", function()
@@ -16,7 +16,7 @@ describe("Health Check", function()
 
     it("validates default options correctly", function()
       -- Setup with defaults
-      base.setup({})
+      claude.setup({})
 
       -- Health check should pass without errors
       assert.has_no_errors(function()
@@ -28,7 +28,7 @@ describe("Health Check", function()
   -- Test health check with custom configuration
   describe("Custom configuration", function()
     before_each(function()
-      base.setup({ name = "Test User" })
+      claude.setup({ name = "Test User" })
     end)
 
     it("runs health check with custom options", function()
@@ -49,7 +49,7 @@ describe("Health Check", function()
   describe("Option validation", function()
     it("handles invalid configuration gracefully", function()
       -- Setup with invalid options
-      base.setup({ name = 123 }) -- name should be string, not number
+      claude.setup({ name = 123 }) -- name should be string, not number
 
       -- Health check should still complete (but may report errors internally)
       assert.has_no_errors(function()

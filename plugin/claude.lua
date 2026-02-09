@@ -1,8 +1,8 @@
 -- In this file you define the User commands, i.t how the user will interact with your plugin.
 
 local sub_cmds = {
-  hello = require("base").hello,
-  bye = require("base").bye,
+  hello = require("claude").hello,
+  bye = require("claude").bye,
 }
 
 local sub_cmds_keys = {}
@@ -13,15 +13,15 @@ end
 local function main_cmd(opts)
   local sub_cmd = sub_cmds[opts.args]
   if sub_cmd == nil then
-    vim.print("Base: invalid subcommand")
+    vim.print("Claude: invalid subcommand")
   else
     sub_cmd()
   end
 end
 
-vim.api.nvim_create_user_command("Base", main_cmd, {
+vim.api.nvim_create_user_command("Claude", main_cmd, {
   nargs = "?",
-  desc = "Base example command",
+  desc = "Claude example command",
   complete = function(arg_lead, _, _)
     return vim
       .iter(sub_cmds_keys)

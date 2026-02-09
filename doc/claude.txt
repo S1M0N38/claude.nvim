@@ -1,0 +1,322 @@
+================================================================================
+INTRODUCTION                                                           *claude*
+
+claude.nvim is a simple plugin to integrate Claude Code in Neovim.
+
+Links:
+- License (MIT): https://github.com/S1M0N38/claude.nvim/blob/main/LICENSE
+
+Table of contents:
+
+1. FEATURES: What this plugin provides.                       |claude-features|
+2. REQUIREMENTS: Plugin dependencies and setup.           |claude-requirements|
+3. INSTALLATION: How to install and use the plugin.       |claude-installation|
+4. CONFIGURATION: Available options and their defaults.         |claude-config|
+5. COMMANDS: Commands provided by the plugin.                 |claude-commands|
+6. API: Exposed functions and development interfaces.              |claude-api|
+7. DEVELOPMENT: Testing, building, and release workflows.  |claude-development|
+8. TROUBLESHOOTING: Common issues and solutions.       |claude-troubleshooting|
+
+================================================================================
+FEATURES                                                      *claude-features*
+
+claude.nvim provides the following features:
+
+Plugin Structure: ~
+
+  A well-organized plugin structure is essential for maintainability,
+  readability, and following Neovim community conventions.
+
+  - Organized file layout with lua/claude/init.lua for core logic
+  - plugin/claude.lua for plugin manager integration
+  - lua/claude/health.lua for health check functionality
+  - lua/claude/types.lua for LuaCATS type definitions
+  - Standard directory structure following Neovim conventions
+
+Development Environment: ~
+
+  - Lua Language Server integration with autocompletion and diagnostics
+  - LuaCATS annotations support for type checking and documentation
+  - lazydev.nvim integration for enhanced plugin development experience
+  - lazy.nvim configuration examples for local development workflow
+
+Testing Framework: ~
+
+  - Busted unit testing framework with comprehensive test structure
+  - nlua integration for Neovim Lua API access during tests
+  - Test specifications in spec/ directory with automated discovery
+
+Documentation System: ~
+
+  - Vim help documentation using vimdoc format in doc/ directory
+  - Integration with Neovim's built-in help system
+  - Documentation accessible via :help commands within editor
+
+Automation and Workflows: ~
+
+  - GitHub Actions workflows for continuous integration
+  - Type checking with Lua Language Server validation
+  - Automated releases based on conventional commit specifications
+  - LuaRocks and GitHub package publishing with semantic versioning
+  - Minimal reproduction environment for debugging with repro/repro.lua
+
+================================================================================
+REQUIREMENTS                                              *claude-requirements*
+
+Before using claude.nvim, ensure you have the following:
+
+- Neovim >= 0.11
+- luarocks (https://luarocks.org/) for package management
+- busted (https://lunarmodules.github.io/busted/) for testing
+- nlua (https://github.com/mfussenegger/nlua) for Neovim API access in tests
+
+For development workflow:
+- lazy.nvim (https://github.com/folke/lazy.nvim) for plugin management
+- lazydev.nvim (https://github.com/folke/lazydev.nvim) for Lua LSP setup
+
+================================================================================
+INSTALLATION                                              *claude-installation*
+
+Install using lazy.nvim:
+
+>lua
+  {
+    {
+      "S1M0N38/claude.nvim",
+      dir = "/path/to/claude.nvim",
+      branch = "main",
+      lazy = false,
+      opts = {},
+      keys = {
+        {
+          "<leader>rb",
+          "<cmd>Lazy reload claude.nvim<cr>",
+          desc = "Reload claude.nvim",
+          mode = { "n", "v" },
+        },
+      },
+    },
+
+    {
+      "folke/lazydev.nvim",
+      ft = "lua",
+      opts = {
+        library = {
+          "${3rd}/luassert/library",
+          "${3rd}/busted/library",
+          "claude.nvim",
+        }
+      },
+    },
+
+  }
+<
+
+================================================================================
+CONFIGURATION                                                   *claude-config*
+
+claude.setup({opts}) ~
+
+The `claude.setup()` function configures the plugin with user-provided options.
+Available options:
+
+>lua
+  {
+    name = "John Doe", -- The name of the user (string, default: "John Doe")
+  }
+<
+
+The configuration system demonstrates proper option handling with defaults
+and user customization. When building your plugin, extend this pattern to
+support your specific configuration needs.
+
+Example configuration: ~
+>lua
+  require("claude").setup({
+    name = "Jane Developer",
+  })
+<
+
+================================================================================
+COMMANDS                                                      *claude-commands*
+
+claude.nvim provides the following commands:
+
+:Claude [subcommand] ~
+  Execute a claude.nvim subcommand. Available subcommands:
+  - `hello`: Display greeting message to the user
+  - `bye`: Display farewell message to the user
+
+  If no subcommand is provided or an invalid subcommand is used, an error
+  message will be displayed with usage information.
+
+:checkhealth claude ~
+  Run health checks to verify claude.nvim setup and configuration.
+  This command validates:
+  - Plugin installation and loading
+  - Configuration option validation
+  - Core functionality testing
+  - Development dependencies availability
+
+================================================================================
+API                                                                *claude-api*
+
+claude.nvim exposes a minimal API focused on setup and core functionality:
+
+                                                               *claude.setup()*
+claude.setup({opts}) ~
+  Set up the plugin with the given options. See |claude-config| for
+  available options. This is the primary public function exposed by the
+  main module.
+
+                                                               *claude.hello()*
+claude.hello() ~
+  Say hello to the user using the configured name. Returns a string with
+  the greeting message and prints it using vim.print().
+
+  Return format: ~
+  "Hello [configured name]"
+
+                                                                 *claude.bye()*
+claude.bye() ~
+  Say bye to the user using the configured name. Returns a string with
+  the farewell message and prints it using vim.print().
+
+  Return format: ~
+  "Bye [configured name]"
+
+Usage example: ~
+>lua
+    -- Basic usage
+    require("claude").setup({ name = "Developer" })
+
+    -- Call functions directly
+    local greeting = require("claude").hello()
+    local farewell = require("claude").bye()
+
+    -- Access configuration
+    local config = require("claude.config").options
+    print("Current name: " .. config.name)
+<
+
+================================================================================
+DEVELOPMENT                                                *claude-development*
+
+claude.nvim includes a development workflow for plugin creation:
+
+Testing: ~
+
+Run tests using Busted:
+>bash
+  # Run all tests
+  busted
+
+  # Run specific test file
+  busted spec/claude_spec.lua
+
+  # Run with verbose output
+  busted --verbose
+<
+
+Health Checks: ~
+
+Validate plugin setup and functionality:
+>vim
+  :checkhealth claude
+<
+
+Minimal Reproduction: ~
+
+Debug issues using the included reproduction environment:
+>bash
+  # Start Neovim with minimal config
+  nvim -u repro/repro.lua
+<
+
+Code Formatting: ~
+
+The plugin uses EditorConfig for consistent code formatting across editors:
+>bash
+  # Stylua automatically reads formatting rules from .editorconfig
+  stylua .
+
+  # The .editorconfig file configures:
+  # - 2-space indentation
+  # - Double quotes for strings
+  # - 120 character line length
+  # - Unix line endings (LF)
+<
+
+No separate `stylua.toml` configuration file is needed as stylua respects
+EditorConfig settings.
+
+Release Automation: ~
+
+The plugin includes automated workflows for:
+- Running tests on every push (GitHub Actions)
+- Type checking with LuaLS
+- Automated releases based on conventional commits
+- LuaRocks package publishing
+
+Use conventional commit format for automatic versioning:
+- `feat:` for new features (minor version bump)
+- `fix:` for bug fixes (patch version bump)
+- `BREAKING CHANGE:` for breaking changes (major version bump)
+
+================================================================================
+TROUBLESHOOTING                                        *claude-troubleshooting*
+
+First, run the health check to identify issues:
+>vim
+  :checkhealth claude
+<
+
+If you encounter problems, follow these steps to reproduce the issue
+in a clean environment:
+
+1. Clone claude.nvim and cd into the directory
+2. Run `nvim -u repro/repro.lua`
+3. Run `:checkhealth claude`
+4. Try to reproduce the issue
+5. Report the repro.lua and any error messages
+
+If you need to programmatically run lua code for testing, you can use the
+repro/repro.lua file for configuration and use the `-l` flag to load the
+script file, i.e.:
+
+>bash
+  nvim -u repro/repro.lua -l <script.lua>
+<
+
+or directly run the command with the `-c` flag:
+>bash
+  # Run the command after loading the config in repro/repro.lua file
+  nvim -u repro/repro.lua -c "Claude hello"
+
+  # Run in headless mode and quit after running the command
+  nvim --headless -u repro/repro.lua -c "Claude hello" -c "q"
+<
+
+
+Manual Testing: ~
+
+Test basic functionality:
+>vim
+  :Claude hello
+  :Claude bye
+<
+
+Test Lua API:
+>vim
+  :lua print(require("claude").hello())
+  :lua print(require("claude").bye())
+<
+
+Test configuration:
+>vim
+  :lua require("claude").setup({name = "Test User"})
+  :lua print(require("claude.config").options.name)
+<
+
+================================================================================
+vim:tw=78:ts=8:et:ft=help:norl:

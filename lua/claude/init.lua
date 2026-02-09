@@ -1,16 +1,16 @@
----@class Base.Plugin
+---@class Claude.Plugin
 local M = {}
 
----Setup the base plugin
----@param opts Base.UserOptions: plugin options
+---Setup the claude plugin
+---@param opts Claude.UserOptions: plugin options
 M.setup = function(opts)
-  require("base.config").setup(opts)
+  require("claude.config").setup(opts)
 end
 
 ---Say hello to the user
 ---@return string: message to the user
 M.hello = function()
-  local str = "Hello " .. require("base.config").options.name
+  local str = "Hello " .. require("claude.config").options.name
   vim.print(str)
   return str
 end
@@ -18,7 +18,7 @@ end
 ---Say bye to the user
 ---@return string: message to the user
 M.bye = function()
-  local str = "Bye " .. require("base.config").options.name
+  local str = "Bye " .. require("claude.config").options.name
   vim.print(str)
   return str
 end

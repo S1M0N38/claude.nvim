@@ -5,15 +5,14 @@ rockspec_format = "3.0"
 version = _MODREV .. _SPECREV
 
 local user = "S1M0N38"
-package = "base.nvim"
+package = "claude.nvim"
 
 description = {
-	summary = "Modern template for Neovim plugin development",
+	summary = "A simple plugin to integrate Claude Code in Neovim",
 	detailed = [[
-base.nvim is a simple template for Neovim plugin development that provides
-best practices, testing setup, type definitions, and automated workflows.
+claude.nvim is a simple plugin to integrate Claude Code in Neovim.
   ]],
-	labels = { "neovim", "template", "plugin", "lua", "testing", "busted" },
+	labels = { "neovim", "plugin", "lua", "claude", "ai" },
 	homepage = "https://github.com/" .. user .. "/" .. package,
 	license = "MIT",
 }

@@ -30,6 +30,6 @@ jobs:
           LUAROCKS_API_KEY: ${{ secrets.LUAROCKS_API_KEY }}
         with:
           detailed_description: |
-            A template for Neovim plugin
+            A simple plugin to integrate Claude Code in Neovim
           copy_directories: |
             {{ neovim.plugin.dirs }}

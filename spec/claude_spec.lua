@@ -1,26 +1,26 @@
-local base = require("base")
+local claude = require("claude")
 
 -- If you need to setup other plugins for integration testing, implment a setup that looks like the repro/repro.lua
 
--- Test base.nvim with default options
+-- Test claude.nvim with default options
 describe("Default options", function()
-  base.setup({})
+  claude.setup({})
   it("can say hello", function()
-    assert.are.equal("Hello John Doe", base.hello())
+    assert.are.equal("Hello John Doe", claude.hello())
   end)
   it("can say bye", function()
-    assert.are.equal("Bye John Doe", base.bye())
+    assert.are.equal("Bye John Doe", claude.bye())
   end)
 end)
 
--- Test base.nvim with user defined options
+-- Test claude.nvim with user defined options
 describe("User defined options", function()
-  base.setup({ name = "John Smith" })
+  claude.setup({ name = "John Smith" })
   it("can say hello", function()
-    assert.are.equal("Hello John Smith", base.hello())
+    assert.are.equal("Hello John Smith", claude.hello())
   end)
   it("can say bye", function()
-    assert.are.equal("Bye John Smith", base.bye())
+    assert.are.equal("Bye John Smith", claude.bye())
   end)
 end)
 

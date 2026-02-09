@@ -1,12 +1,12 @@
-# Contributing to base.nvim
+# Contributing to claude.nvim
 
-Thank you for your interest in contributing to base.nvim! This template aims to provide a good foundation for Neovim plugin development.
+Thank you for your interest in contributing to claude.nvim!
 
 ## Getting Started
 
-1. **Read the documentation**: Start with the [README](README.md) and comprehensive [help documentation](doc/base.txt)
+1. **Read the documentation**: Start with the [README](README.md) and comprehensive [help documentation](doc/claude.txt)
 2. **Set up your environment**: Follow the installation steps in the README
-3. **Test your setup**: Run `:checkhealth base` to verify everything works
+3. **Test your setup**: Run `:checkhealth claude` to verify everything works
 
 ## GitHub Workflow
 
@@ -17,8 +17,8 @@ Thank you for your interest in contributing to base.nvim! This template aims to 
 2. Clone your fork locally:
 
 ```bash
-git clone https://github.com/your-username/base.nvim.git
-cd base.nvim
+git clone https://github.com/your-username/claude.nvim.git
+cd claude.nvim
 ```
 
 ### Create a Branch
@@ -33,7 +33,7 @@ git checkout -b fix/specific-bug-description
 ### Make Your Changes
 
 1. **Write tests**: Add or update tests for your changes in the `spec/` directory
-2. **Update documentation**: Update `doc/base.txt` and README if needed
+2. **Update documentation**: Update `doc/claude.txt` and README if needed
 3. **Follow coding standards**: The project uses EditorConfig - your editor should automatically format code correctly
 
 ### Test Your Changes
@@ -45,7 +45,7 @@ Before submitting, ensure everything works:
 busted
 
 # Check health functionality
-nvim -u repro/repro.lua -c "checkhealth base" -c "q"
+nvim -u repro/repro.lua -c "checkhealth claude" -c "q"
 
 # Format code (uses .editorconfig settings)
 stylua .
@@ -88,8 +88,5 @@ See our [bug report template](.github/ISSUE_TEMPLATE/bug_report.md) for details.
 
 ## Development Notes
 
-- **Template focus**: Remember this is a template - changes should benefit all plugin developers
 - **Keep it simple**: Avoid adding complex dependencies or patterns
 - **Document everything**: Both code comments and help documentation
-
-Thank you for helping make base.nvim better! 🚀
