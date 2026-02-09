@@ -25,7 +25,7 @@ Analyze the git diff of staged files and create a commit message following conve
 3. Run `git diff --stat --staged` for summary of changed files
 4. Run `git log --oneline -10` to review recent commit patterns
 5. Choose appropriate type and scope based on changes
-6. Write concise description (50 chars max for first line)
+6. Write concise description (72 chars max for first line)
 7. Include body if changes are complex
 8. Commit the staged changes with the generated message
 

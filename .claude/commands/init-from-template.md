@@ -9,7 +9,6 @@ Before initialization, verify that required development tools are installed:
 - `git --version` - Version control (required)
 - `luarocks --version` - Lua package manager for dependencies
 - `lua -v` - Lua interpreter (5.1+ recommended for Neovim compatibility)
-- `busted --version` - Lua testing framework
 - `stylua --version` - Lua code formatter
 - `lua-language-server --version` - Lua language server
 
@@ -65,7 +64,7 @@ The command will gather the following information:
    - Verify Lua syntax is still valid
    - Check that rockspec is properly formatted
    - Run lua formatter `stylua .` to ensure code is formatted
-   - All tests should pass. Run `busted .` to run all tests
+   - All tests should pass. Run `make test` to run all tests
 
 8. Summary
     - The command will create a new commit with all the initialization changes
@@ -81,7 +80,7 @@ The command will gather the following information:
 - `lua/base/types.lua` - Update module references and documentation
 - `doc/base.txt` - Rename to `doc/{plugin-name}.txt` and update content
 - `.github/workflows/` - Update CI configuration if present
-- Test files in `spec/` - Update require statements
+- Test files in `tests/` - Update require statements
 
 ### Notes
 
