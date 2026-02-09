@@ -21,9 +21,6 @@ dependencies = {
 	"lua >= 5.1",
 }
 
-test_dependencies = {
-	"nlua",
-}
 
 source = {
 	url = "git://github.com/" .. user .. "/" .. package,
@@ -31,4 +28,5 @@ source = {
 
 build = {
 	type = "builtin",
+	copy_directories = { "plugin", "doc", "scripts" },
 }
