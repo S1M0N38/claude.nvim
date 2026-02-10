@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/S1M0N38/claude.nvim/compare/v1.2.0...v1.3.0) (2026-02-10)
+
+
+### Features
+
+* **terminal:** add multi-slot support for running multiple instances ([b509ee0](https://github.com/S1M0N38/claude.nvim/commit/b509ee0ab593af898f86774a7cbd81e404f2c393))
+
+
+### Bug Fixes
+
+* **types:** mark slot job field as optional to fix type error ([aa13a78](https://github.com/S1M0N38/claude.nvim/commit/aa13a7832521ba3e4e47df3dae746adf9e888b73))
+
 ## [1.2.0](https://github.com/S1M0N38/claude.nvim/compare/v1.1.0...v1.2.0) (2026-02-10)
 
 
