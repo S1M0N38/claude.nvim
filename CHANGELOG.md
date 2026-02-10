@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/S1M0N38/claude.nvim/compare/v1.3.0...v1.4.0) (2026-02-10)
+
+
+### Features
+
+* **terminal:** auto-switch slot when displayed slot exits ([db6255b](https://github.com/S1M0N38/claude.nvim/commit/db6255b848f5c870b7b894d6f2ef5ee3ea726fc7))
+
 ## [1.3.0](https://github.com/S1M0N38/claude.nvim/compare/v1.2.0...v1.3.0) (2026-02-10)
 
 
