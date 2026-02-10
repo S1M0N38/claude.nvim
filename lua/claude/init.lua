@@ -14,8 +14,7 @@ M.setup = function(opts)
 
     vim.api.nvim_create_autocmd("TermOpen", {
       callback = function(ev)
-        local claude_buf = require("claude.terminal").get_buf()
-        if claude_buf and claude_buf == ev.buf then
+        if require("claude.terminal").is_claude_buf(ev.buf) then
           require("claude.terminal").setup_keymaps(ev.buf)
         end
       end,

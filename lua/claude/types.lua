@@ -44,13 +44,16 @@
 -- lua/claude/terminal.lua -------------------------------------------------------
 
 ---@class Claude.Terminal
----@field open function open the floating terminal
----@field close function close the floating terminal window
+---@field open function open the floating terminal for the current slot
+---@field close function close the floating terminal window (all slots keep running)
 ---@field toggle function toggle the floating terminal
+---@field switch fun(n: number) switch to slot n (1-9), creating instance if empty
 ---@field is_open function check if the terminal window is open
----@field is_running function check if the terminal process is running
----@field send function send text to the terminal
----@field get_buf function get the terminal buffer number
+---@field is_running function check if the current slot's terminal process is running
+---@field send function send text to the current slot's terminal
+---@field get_buf function get the current slot's terminal buffer number
+---@field is_claude_buf fun(bufnr: number): boolean check if a buffer belongs to any slot
+---@field get_active_slots fun(): number[] get all active slot numbers sorted ascending
 ---@field setup_keymaps function setup terminal-mode keymaps for a buffer
 
 -- lua/claude/send.lua -----------------------------------------------------------
