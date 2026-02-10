@@ -3,8 +3,9 @@ INTRODUCTION                                                           *claude*
 
 claude.nvim integrates Claude Code into Neovim via a floating terminal. It
 provides commands to toggle the terminal, send visual selections, and send
-file references to Claude Code. Notifications from Claude Code hooks are
-forwarded to Neovim's `vim.notify()`.
+file references to Claude Code. Multiple terminal slots (1-9) allow running
+several Claude Code sessions side by side. Notifications from Claude Code
+hooks are forwarded to Neovim's `vim.notify()`.
 
 Links:
 - Repository: https://github.com/S1M0N38/claude.nvim
@@ -17,10 +18,11 @@ Table of contents:
 3. CONFIGURATION: Available options and their defaults.         |claude-config|
 4. COMMANDS: Commands provided by the plugin.                 |claude-commands|
 5. KEYMAPS: Default keymaps and terminal-mode behavior.        |claude-keymaps|
-6. FILE EXPLORER: Browse and send file references.           |claude-explorer|
-7. HOOKS: Notification forwarding from Claude Code.              |claude-hooks|
-8. API: Lua functions exposed by the plugin.                       |claude-api|
-9. TROUBLESHOOTING: Common issues and solutions.       |claude-troubleshooting|
+6. SLOTS: Multiple terminal instances.                           |claude-slots|
+7. FILE EXPLORER: Browse and send file references.            |claude-explorer|
+8. HOOKS: Notification forwarding from Claude Code.              |claude-hooks|
+9. API: Lua functions exposed by the plugin.                       |claude-api|
+10. TROUBLESHOOTING: Common issues and solutions.      |claude-troubleshooting|
 
 ================================================================================
 REQUIREMENTS                                              *claude-requirements*
@@ -124,10 +126,11 @@ COMMANDS                                                      *claude-commands*
 
                                                               *:ClaudeToggle*
 :ClaudeToggle ~
-  Toggle the Claude Code floating terminal. If the terminal is not yet
-  running, a new Claude Code process is spawned. If the window is open, it
-  is closed (the process keeps running in the background). If the window is
-  closed, it is reopened with the same session.
+  Toggle the Claude Code floating terminal for the current slot. If the
+  terminal is not yet running, a new Claude Code process is spawned. If the
+  window is open, it is closed (all slot processes keep running in the
+  background). If the window is closed, it is reopened with the same session.
+  See |claude-slots| for details on multiple terminal instances.
 
                                                                 *:ClaudeSend*
 :'<,'>ClaudeSend ~
@@ -161,6 +164,7 @@ Normal mode: ~
 Terminal mode (Claude buffer only): ~
 
   `<C-.>`      Toggle the Claude floating terminal     |:ClaudeToggle|
+  `<C-1>`..`<C-9>` Switch to slot 1-9                  |claude-slots|
   `<Esc><Esc>` Exit terminal mode (return to normal mode)
 
 Single Escape behavior: ~
@@ -185,17 +189,17 @@ Filetype: ~
 <
 
 ================================================================================
-FILE EXPLORER                                                  *claude-explorer*
+FILE EXPLORER                                                 *claude-explorer*
 
 claude.nvim provides two ways to browse files and send references to Claude.
 
-                                                             *:ClaudeExplorer*
+                                                            *:ClaudeExplorer*
 :ClaudeExplorer ~
   Open a file explorer to browse and select files. The selected file path is
   sent as a reference (@path format) to the Claude terminal. This command
   requires mini.files and opens an interactive file browser.
 
-                                                                *:ClaudePicker*
+                                                              *:ClaudePicker*
 :ClaudePicker ~
   Open a file picker to search and select files. This command requires
   snacks.nvim and provides a searchable file picker interface. The selected
@@ -335,7 +339,7 @@ claude.send_reference() ~
   require("claude").send_reference()
 <
 
-                                                        *claude.browse_files()*
+                                                      *claude.browse_files()*
 claude.browse_files() ~
   Open the file explorer using mini.files to browse and send file references.
   Requires mini.files to be available.
