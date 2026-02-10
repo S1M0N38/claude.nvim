@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/S1M0N38/claude.nvim/compare/v1.1.0...v1.2.0) (2026-02-10)
+
+
+### Features
+
+* **explorer:** add file explorer to send references via mini.files ([8281cc2](https://github.com/S1M0N38/claude.nvim/commit/8281cc2e1d2ab17b06235a7ce4772429d461886e))
+* **explorer:** integrate explorer into terminal, health, and types ([82edb59](https://github.com/S1M0N38/claude.nvim/commit/82edb598d91f0e8814a69b314bdc51f71b950cae))
+
 ## [1.1.0](https://github.com/S1M0N38/claude.nvim/compare/v1.0.0...v1.1.0) (2026-02-10)
 
 
