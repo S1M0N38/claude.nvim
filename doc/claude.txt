@@ -36,7 +36,8 @@ Install using lazy.nvim (https://github.com/folke/lazy.nvim):
 >lua
   {
     "S1M0N38/claude.nvim",
-    lazy = false,
+    version = "*",
+    event = "VeryLazy",
     opts = {},
   }
 <
@@ -46,7 +47,8 @@ With custom options:
 >lua
   {
     "S1M0N38/claude.nvim",
-    lazy = false,
+    version = "*",
+    event = "VeryLazy",
     opts = {
       cmd = "claude",
       float = {
