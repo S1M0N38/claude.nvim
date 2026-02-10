@@ -38,6 +38,7 @@
 ---@class Claude.KeymapOptions
 ---@field enabled boolean Whether to set default keymaps
 ---@field toggle string Keymap for toggling the terminal
+---@field picker string Keymap for opening file picker in terminal mode
 
 -- lua/claude/terminal.lua -------------------------------------------------------
 
@@ -63,6 +64,12 @@
 
 ---@class Claude.Notify
 ---@field from_hook fun(path: string): string process a hook notification from a temp file
+
+-- lua/claude/picker.lua ---------------------------------------------------------
+
+---@class Claude.Picker
+---@field pick_files fun(): nil open snacks file picker and send selections to terminal
+---@field is_available fun(): boolean check if snacks.nvim is available
 
 -- lua/claude/health.lua ---------------------------------------------------------
 

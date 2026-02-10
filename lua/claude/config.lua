@@ -12,6 +12,7 @@ M.defaults = {
   keymaps = {
     enabled = true,
     toggle = "<C-.>",
+    picker = "<C-f>",
   },
 }
 

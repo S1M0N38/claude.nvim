@@ -137,6 +137,13 @@ function M.setup_keymaps(bufnr)
     M.toggle()
   end, { buffer = bufnr, desc = "Toggle Claude terminal", silent = true })
 
+  vim.keymap.set("t", config.keymaps.picker, function()
+    vim.cmd("stopinsert")
+    vim.schedule(function()
+      require("claude.picker").pick_files()
+    end)
+  end, { buffer = bufnr, desc = "Open file picker", silent = true })
+
   local esc_timer = nil
   local esc_pending = false
 

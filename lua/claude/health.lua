@@ -62,6 +62,15 @@ local function check_server()
   end
 end
 
+---Check if snacks.nvim is available (optional, enables file picker)
+local function check_snacks()
+  if pcall(require, "snacks") then
+    vim.health.ok("`snacks.nvim` is available (file picker enabled)")
+  else
+    vim.health.info("`snacks.nvim` not found (optional, enables file picker)")
+  end
+end
+
 ---Perform health check for the plugin
 ---@return nil
 M.check = function()
@@ -71,6 +80,7 @@ M.check = function()
   validate_opts()
   check_jq()
   check_server()
+  check_snacks()
 end
 
 return M
