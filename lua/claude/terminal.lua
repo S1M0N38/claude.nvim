@@ -1,13 +1,13 @@
 ---@class Claude.Terminal
 local M = {}
 
-local slots = {} ---@type table<number, {buf: number, job: number}>
+local slots = {} ---@type table<number, {buf: number, job: number?}>
 local current = 1
 local win = nil ---@type number?
 
 ---Get the slot entry for a given slot number (nil-safe)
 ---@param n? number: slot number (defaults to current)
----@return {buf: number, job: number}?
+---@return {buf: number, job: number?}?
 local function get_slot(n)
   return slots[n or current]
 end
