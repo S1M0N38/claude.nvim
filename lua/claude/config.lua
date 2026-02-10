@@ -13,6 +13,7 @@ M.defaults = {
     enabled = true,
     toggle = "<C-.>",
     picker = "<C-f>",
+    explorer = "<C-e>",
   },
 }
 

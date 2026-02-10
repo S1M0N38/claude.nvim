@@ -17,9 +17,10 @@ Table of contents:
 3. CONFIGURATION: Available options and their defaults.         |claude-config|
 4. COMMANDS: Commands provided by the plugin.                 |claude-commands|
 5. KEYMAPS: Default keymaps and terminal-mode behavior.        |claude-keymaps|
-6. HOOKS: Notification forwarding from Claude Code.              |claude-hooks|
-7. API: Lua functions exposed by the plugin.                       |claude-api|
-8. TROUBLESHOOTING: Common issues and solutions.       |claude-troubleshooting|
+6. FILE EXPLORER: Browse and send file references.           |claude-explorer|
+7. HOOKS: Notification forwarding from Claude Code.              |claude-hooks|
+8. API: Lua functions exposed by the plugin.                       |claude-api|
+9. TROUBLESHOOTING: Common issues and solutions.       |claude-troubleshooting|
 
 ================================================================================
 REQUIREMENTS                                              *claude-requirements*
@@ -27,6 +28,8 @@ REQUIREMENTS                                              *claude-requirements*
 - Neovim >= 0.11
 - Claude Code CLI: https://docs.anthropic.com/en/docs/claude-code
 - jq (optional): required for notification hooks (`scripts/nvim-notify.sh`)
+- mini.files (optional): required for file explorer feature
+- snacks.nvim (optional): required for file picker feature
 
 ================================================================================
 INSTALLATION                                              *claude-installation*
@@ -88,6 +91,8 @@ Default options: ~
     keymaps = {
       enabled = true,       -- Whether to set default keymaps
       toggle = "<C-.>",     -- Keymap for toggling the terminal
+      picker = "<C-f>",     -- Keymap for file picker (requires snacks.nvim)
+      explorer = "<C-e>",   -- Keymap for file explorer (requires mini.files)
     },
   }
 <
@@ -150,6 +155,8 @@ When `keymaps.enabled` is true (the default), the following keymaps are set:
 Normal mode: ~
 
   `<C-.>`      Toggle the Claude floating terminal     |:ClaudeToggle|
+  `<C-f>`      Open file picker                        |:ClaudeExplorer|
+  `<C-e>`      Open file explorer                      |:ClaudeExplorer|
 
 Terminal mode (Claude buffer only): ~
 
@@ -176,6 +183,38 @@ Filetype: ~
     end,
   })
 <
+
+================================================================================
+FILE EXPLORER                                                  *claude-explorer*
+
+claude.nvim provides two ways to browse files and send references to Claude.
+
+                                                             *:ClaudeExplorer*
+:ClaudeExplorer ~
+  Open a file explorer to browse and select files. The selected file path is
+  sent as a reference (@path format) to the Claude terminal. This command
+  requires mini.files and opens an interactive file browser.
+
+                                                                *:ClaudePicker*
+:ClaudePicker ~
+  Open a file picker to search and select files. This command requires
+  snacks.nvim and provides a searchable file picker interface. The selected
+  file path is sent as a reference (@path format) to the Claude terminal.
+
+Default keymaps: ~
+
+  Normal mode:
+    `<C-e>`      Open file explorer (explorer feature)
+    `<C-f>`      Open file picker (picker feature)
+
+Dependencies: ~
+
+  - File Explorer (`<C-e>`): requires mini.files
+  - File Picker (`<C-f>`): requires snacks.nvim
+
+If the required dependency is not available, attempting to use the feature
+will show a warning notification. The terminal must be running before using
+either feature.
 
 ================================================================================
 HOOKS                                                            *claude-hooks*
@@ -296,6 +335,24 @@ claude.send_reference() ~
   require("claude").send_reference()
 <
 
+                                                        *claude.browse_files()*
+claude.browse_files() ~
+  Open the file explorer using mini.files to browse and send file references.
+  Requires mini.files to be available.
+
+>lua
+  require("claude.explorer").browse_files()
+<
+
+                                                        *claude.pick_files()*
+claude.pick_files() ~
+  Open the file picker using snacks.nvim to search and send file references.
+  Requires snacks.nvim to be available.
+
+>lua
+  require("claude.picker").pick_files()
+<
+
 Custom keymap examples: ~
 
   If you set `keymaps.enabled = false`, you can define your own bindings:
@@ -314,6 +371,14 @@ Custom keymap examples: ~
   vim.keymap.set("v", "<leader>cr", function()
     require("claude").send_reference()
   end, { desc = "Send file reference to Claude" })
+
+  vim.keymap.set("n", "<leader>ce", function()
+    require("claude.explorer").browse_files()
+  end, { desc = "Browse files with explorer" })
+
+  vim.keymap.set("n", "<leader>cf", function()
+    require("claude.picker").pick_files()
+  end, { desc = "Pick files with picker" })
 <
 
 ================================================================================
