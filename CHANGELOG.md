@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/S1M0N38/claude.nvim/compare/v1.0.0...v1.1.0) (2026-02-10)
+
+
+### Features
+
+* **picker:** add file picker to send references via snacks.nvim ([07a4e53](https://github.com/S1M0N38/claude.nvim/commit/07a4e53c49f443b61fcc75640ff348b8e0c34aa8))
+
 ## 1.0.0 (2026-02-10)
 
 
