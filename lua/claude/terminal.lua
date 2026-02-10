@@ -33,6 +33,29 @@ local function build_title()
   return " Claude " .. table.concat(parts, " ") .. " "
 end
 
+---Find the nearest active slot to a given slot number (prefers lower on tie)
+---@param target number: slot number to find nearest to
+---@return number?: nearest active slot number, or nil if none exist
+local function find_nearest_slot(target)
+  local active = M.get_active_slots()
+  if #active == 0 then
+    return nil
+  end
+
+  local nearest = nil
+  local min_dist = math.huge
+
+  for _, n in ipairs(active) do
+    local dist = math.abs(n - target)
+    if dist < min_dist or (dist == min_dist and n < nearest) then
+      nearest = n
+      min_dist = dist
+    end
+  end
+
+  return nearest
+end
+
 ---Compute float window dimensions from config
 ---@return table: nvim_open_win config
 local function float_opts()
@@ -68,6 +91,8 @@ local function ensure_window(buf)
   end
 end
 
+local activate_slot -- forward declaration (used in on_exit callback below)
+
 ---Start a terminal job in a slot that has a buffer but no job.
 ---The buffer must already be displayed in the current window (jobstart term=true requires this).
 ---@param n number: slot number
@@ -94,15 +119,35 @@ local function start_job(n)
       end
       slots[n] = nil
       vim.schedule(function()
-        if win and vim.api.nvim_win_is_valid(win) then
-          local win_buf = vim.api.nvim_win_get_buf(win)
-          if win_buf == buf then
+        local is_displayed = win and vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == buf
+
+        -- Delete the dead buffer (use a scratch buffer to keep the window valid)
+        if vim.api.nvim_buf_is_valid(buf) then
+          if is_displayed then
+            local scratch = vim.api.nvim_create_buf(false, true)
+            vim.api.nvim_win_set_buf(win, scratch)
+          end
+          vim.api.nvim_buf_delete(buf, { force = true })
+        end
+
+        if is_displayed then
+          local nearest = find_nearest_slot(n)
+          if nearest then
+            current = nearest
+            activate_slot(nearest)
+            -- Terminal job just started; defer startinsert so the terminal has time to initialize
+            vim.defer_fn(function()
+              if win and vim.api.nvim_win_is_valid(win) then
+                vim.api.nvim_set_current_win(win)
+                vim.cmd("startinsert")
+              end
+            end, 50)
+          else
             vim.api.nvim_win_close(win, true)
             win = nil
           end
-        end
-        if vim.api.nvim_buf_is_valid(buf) then
-          vim.api.nvim_buf_delete(buf, { force = true })
+        elseif win and vim.api.nvim_win_is_valid(win) then
+          vim.api.nvim_win_set_config(win, { title = build_title(), title_pos = "center" })
         end
       end)
     end,
@@ -125,7 +170,7 @@ end
 
 ---Activate a slot: ensure buffer exists, show it in the window, start job if needed
 ---@param n number: slot number
-local function activate_slot(n)
+activate_slot = function(n)
   ensure_slot_buf(n)
   local slot = slots[n]
   ensure_window(slot.buf)
