@@ -71,6 +71,15 @@ local function check_snacks()
   end
 end
 
+---Check if mini.files is available (optional, enables file explorer)
+local function check_mini_files()
+  if pcall(require, "mini.files") then
+    vim.health.ok("`mini.files` is available (file explorer enabled)")
+  else
+    vim.health.info("`mini.files` not found (optional, enables file explorer)")
+  end
+end
+
 ---Perform health check for the plugin
 ---@return nil
 M.check = function()
@@ -81,6 +90,7 @@ M.check = function()
   check_jq()
   check_server()
   check_snacks()
+  check_mini_files()
 end
 
 return M

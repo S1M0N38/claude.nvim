@@ -18,6 +18,7 @@ function M.reset_plugin()
   package.loaded["claude.notify"] = nil
   package.loaded["claude.health"] = nil
   package.loaded["claude.picker"] = nil
+  package.loaded["claude.explorer"] = nil
 end
 
 --- Setup plugin with given options (resets first)

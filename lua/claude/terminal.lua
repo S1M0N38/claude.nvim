@@ -144,6 +144,13 @@ function M.setup_keymaps(bufnr)
     end)
   end, { buffer = bufnr, desc = "Open file picker", silent = true })
 
+  vim.keymap.set("t", config.keymaps.explorer, function()
+    vim.cmd("stopinsert")
+    vim.schedule(function()
+      require("claude.explorer").browse_files()
+    end)
+  end, { buffer = bufnr, desc = "Open file explorer", silent = true })
+
   local esc_timer = nil
   local esc_pending = false
 
