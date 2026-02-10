@@ -231,4 +231,210 @@ T["get_buf()"]["returns buffer number after open"] = function()
   MiniTest.expect.no_equality(buf, vim.NIL)
 end
 
+-- ============================================================================
+-- switch()
+-- ============================================================================
+
+T["switch()"] = MiniTest.new_set()
+
+T["switch()"]["creates new instance in empty slot"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()
+    terminal.switch(3)
+  ]])
+
+  -- Should have spawned 2 jobs (slot 1 from open, slot 3 from switch)
+  local call_count = child.lua_get([[#_G._test_jobstart_calls]])
+  MiniTest.expect.equality(call_count, 2)
+
+  local is_running = child.lua_get([[require("claude.terminal").is_running()]])
+  MiniTest.expect.equality(is_running, true)
+end
+
+T["switch()"]["switches buffer in existing window"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()
+    _G.buf1 = terminal.get_buf()
+    terminal.switch(2)
+    _G.buf2 = terminal.get_buf()
+  ]])
+
+  local buf1 = child.lua_get([[_G.buf1]])
+  local buf2 = child.lua_get([[_G.buf2]])
+  MiniTest.expect.no_equality(buf1, buf2)
+
+  -- Window should still be open (only one float)
+  local win_count = child.lua_get([[#vim.api.nvim_list_wins()]])
+  MiniTest.expect.equality(win_count, 2)
+end
+
+T["switch()"]["switching back preserves original buffer"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()
+    _G.buf1 = terminal.get_buf()
+    terminal.switch(2)
+    terminal.switch(1)
+    _G.buf_back = terminal.get_buf()
+  ]])
+
+  local buf1 = child.lua_get([[_G.buf1]])
+  local buf_back = child.lua_get([[_G.buf_back]])
+  MiniTest.expect.equality(buf1, buf_back)
+end
+
+T["switch()"]["opens window if closed"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()
+    terminal.close()
+    terminal.switch(2)
+  ]])
+
+  local is_open = child.lua_get([[require("claude.terminal").is_open()]])
+  MiniTest.expect.equality(is_open, true)
+end
+
+T["switch()"]["ignores out-of-range slot numbers"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()
+    _G.buf_before = terminal.get_buf()
+    terminal.switch(0)
+    terminal.switch(10)
+    _G.buf_after = terminal.get_buf()
+  ]])
+
+  local buf_before = child.lua_get([[_G.buf_before]])
+  local buf_after = child.lua_get([[_G.buf_after]])
+  MiniTest.expect.equality(buf_before, buf_after)
+end
+
+-- ============================================================================
+-- get_active_slots()
+-- ============================================================================
+
+T["get_active_slots()"] = MiniTest.new_set()
+
+T["get_active_slots()"]["returns empty table when no slots exist"] = function()
+  local result = child.lua_get([[require("claude.terminal").get_active_slots()]])
+  MiniTest.expect.equality(result, {})
+end
+
+T["get_active_slots()"]["returns single slot"] = function()
+  child.lua([[require("claude.terminal").open()]])
+
+  local result = child.lua_get([[require("claude.terminal").get_active_slots()]])
+  MiniTest.expect.equality(result, { 1 })
+end
+
+T["get_active_slots()"]["returns multiple slots sorted ascending"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()
+    terminal.switch(5)
+    terminal.switch(3)
+  ]])
+
+  local result = child.lua_get([[require("claude.terminal").get_active_slots()]])
+  MiniTest.expect.equality(result, { 1, 3, 5 })
+end
+
+-- ============================================================================
+-- title indicator
+-- ============================================================================
+
+T["title indicator"] = MiniTest.new_set()
+
+T["title indicator"]["single slot shows brackets"] = function()
+  child.lua([[
+    require("claude.terminal").open()
+    local wins = vim.api.nvim_list_wins()
+    for _, w in ipairs(wins) do
+      local cfg = vim.api.nvim_win_get_config(w)
+      if cfg.relative == "editor" then
+        _G._test_title = cfg.title[1][1]
+      end
+    end
+  ]])
+
+  local title = child.lua_get([[_G._test_title]])
+  MiniTest.expect.equality(title, " Claude [1] ")
+end
+
+T["title indicator"]["shows all active slots with current in brackets"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()
+    terminal.switch(3)
+    terminal.switch(5)
+    terminal.switch(3)
+    local wins = vim.api.nvim_list_wins()
+    for _, w in ipairs(wins) do
+      local cfg = vim.api.nvim_win_get_config(w)
+      if cfg.relative == "editor" then
+        _G._test_title = cfg.title[1][1]
+      end
+    end
+  ]])
+
+  local title = child.lua_get([[_G._test_title]])
+  MiniTest.expect.equality(title, " Claude 1 [3] 5 ")
+end
+
+T["title indicator"]["updates when switching slots"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()
+    terminal.switch(2)
+    local wins = vim.api.nvim_list_wins()
+    for _, w in ipairs(wins) do
+      local cfg = vim.api.nvim_win_get_config(w)
+      if cfg.relative == "editor" then
+        _G._test_title = cfg.title[1][1]
+      end
+    end
+  ]])
+
+  local title = child.lua_get([[_G._test_title]])
+  MiniTest.expect.equality(title, " Claude 1 [2] ")
+end
+
+-- ============================================================================
+-- is_claude_buf()
+-- ============================================================================
+
+T["is_claude_buf()"] = MiniTest.new_set()
+
+T["is_claude_buf()"]["returns true for claude buffer"] = function()
+  child.lua([[require("claude.terminal").open()]])
+
+  local result = child.lua_get([[
+    require("claude.terminal").is_claude_buf(require("claude.terminal").get_buf())
+  ]])
+  MiniTest.expect.equality(result, true)
+end
+
+T["is_claude_buf()"]["returns false for non-claude buffer"] = function()
+  local result = child.lua_get([[require("claude.terminal").is_claude_buf(1)]])
+  MiniTest.expect.equality(result, false)
+end
+
+T["is_claude_buf()"]["detects buffers from any slot"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()
+    _G.buf1 = terminal.get_buf()
+    terminal.switch(3)
+    _G.buf3 = terminal.get_buf()
+  ]])
+
+  local buf1_is_claude = child.lua_get([[require("claude.terminal").is_claude_buf(_G.buf1)]])
+  local buf3_is_claude = child.lua_get([[require("claude.terminal").is_claude_buf(_G.buf3)]])
+  MiniTest.expect.equality(buf1_is_claude, true)
+  MiniTest.expect.equality(buf3_is_claude, true)
+end
+
 return T
