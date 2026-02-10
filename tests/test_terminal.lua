@@ -403,6 +403,172 @@ T["title indicator"]["updates when switching slots"] = function()
 end
 
 -- ============================================================================
+-- on_exit behavior
+-- ============================================================================
+
+T["on_exit"] = MiniTest.new_set()
+
+T["on_exit"]["closes window when last slot exits"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()
+    local buf = terminal.get_buf()
+    vim.fn.jobstop(vim.b[buf].terminal_job_id)
+    vim.wait(1000, function()
+      return not terminal.is_open()
+    end)
+  ]])
+
+  local is_open = child.lua_get([[require("claude.terminal").is_open()]])
+  MiniTest.expect.equality(is_open, false)
+end
+
+T["on_exit"]["deletes buffer when job exits"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()
+    _G.test_buf = terminal.get_buf()
+    vim.fn.jobstop(vim.b[_G.test_buf].terminal_job_id)
+    vim.wait(1000, function()
+      return not vim.api.nvim_buf_is_valid(_G.test_buf)
+    end)
+  ]])
+
+  local valid = child.lua_get([[vim.api.nvim_buf_is_valid(_G.test_buf)]])
+  MiniTest.expect.equality(valid, false)
+end
+
+T["on_exit"]["switches to nearest slot when displayed slot exits"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()        -- slot 1
+    terminal.switch(3)     -- slot 3 (current)
+    _G.buf3 = terminal.get_buf()
+    vim.fn.jobstop(vim.b[_G.buf3].terminal_job_id)
+    vim.wait(1000, function()
+      return not vim.api.nvim_buf_is_valid(_G.buf3)
+    end)
+  ]])
+
+  local is_open = child.lua_get([[require("claude.terminal").is_open()]])
+  MiniTest.expect.equality(is_open, true)
+
+  local active = child.lua_get([[require("claude.terminal").get_active_slots()]])
+  MiniTest.expect.equality(active, { 1 })
+end
+
+T["on_exit"]["switches to closest active slot"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()        -- slot 1
+    terminal.switch(4)     -- slot 4
+    terminal.switch(5)     -- slot 5 (current)
+    _G.buf5 = terminal.get_buf()
+    vim.fn.jobstop(vim.b[_G.buf5].terminal_job_id)
+    vim.wait(1000, function()
+      return not vim.api.nvim_buf_is_valid(_G.buf5)
+    end)
+  ]])
+
+  -- Should switch to slot 4 (distance 1) not slot 1 (distance 4)
+  child.lua([[
+    local wins = vim.api.nvim_list_wins()
+    for _, w in ipairs(wins) do
+      local cfg = vim.api.nvim_win_get_config(w)
+      if cfg.relative == "editor" then
+        _G._test_title = cfg.title[1][1]
+      end
+    end
+  ]])
+  local title = child.lua_get([[_G._test_title]])
+  MiniTest.expect.equality(title, " Claude 1 [4] ")
+end
+
+T["on_exit"]["prefers lower slot number on equidistant tie"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()        -- slot 1
+    terminal.switch(5)     -- slot 5
+    terminal.switch(3)     -- slot 3 (current, equidistant from 1 and 5)
+    _G.buf3 = terminal.get_buf()
+    vim.fn.jobstop(vim.b[_G.buf3].terminal_job_id)
+    vim.wait(1000, function()
+      return not vim.api.nvim_buf_is_valid(_G.buf3)
+    end)
+  ]])
+
+  -- Should switch to slot 1 (lower on tie, both distance 2)
+  child.lua([[
+    local wins = vim.api.nvim_list_wins()
+    for _, w in ipairs(wins) do
+      local cfg = vim.api.nvim_win_get_config(w)
+      if cfg.relative == "editor" then
+        _G._test_title = cfg.title[1][1]
+      end
+    end
+  ]])
+  local title = child.lua_get([[_G._test_title]])
+  MiniTest.expect.equality(title, " Claude [1] 5 ")
+end
+
+T["on_exit"]["keeps window on current slot when non-displayed slot exits"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()        -- slot 1
+    terminal.switch(3)     -- slot 3
+    -- Grab slot 1's job id
+    terminal.switch(1)
+    _G.buf1 = terminal.get_buf()
+    _G.job1 = vim.b[_G.buf1].terminal_job_id
+    terminal.switch(3)     -- back to slot 3
+    vim.fn.jobstop(_G.job1)
+    vim.wait(1000, function()
+      return not vim.api.nvim_buf_is_valid(_G.buf1)
+    end)
+  ]])
+
+  local is_open = child.lua_get([[require("claude.terminal").is_open()]])
+  MiniTest.expect.equality(is_open, true)
+
+  local active = child.lua_get([[require("claude.terminal").get_active_slots()]])
+  MiniTest.expect.equality(active, { 3 })
+
+  -- Title should reflect only slot 3
+  child.lua([[
+    local wins = vim.api.nvim_list_wins()
+    for _, w in ipairs(wins) do
+      local cfg = vim.api.nvim_win_get_config(w)
+      if cfg.relative == "editor" then
+        _G._test_title = cfg.title[1][1]
+      end
+    end
+  ]])
+  local title = child.lua_get([[_G._test_title]])
+  MiniTest.expect.equality(title, " Claude [3] ")
+end
+
+T["on_exit"]["removes exited slot from active list"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()        -- slot 1
+    terminal.switch(2)     -- slot 2
+    terminal.switch(3)     -- slot 3
+    -- Grab slot 2's job id
+    terminal.switch(2)
+    _G.buf2 = terminal.get_buf()
+    _G.job2 = vim.b[_G.buf2].terminal_job_id
+    terminal.switch(3)     -- back to slot 3
+    vim.fn.jobstop(_G.job2)
+    vim.wait(1000, function()
+      return not vim.api.nvim_buf_is_valid(_G.buf2)
+    end)
+  ]])
+
+  local active = child.lua_get([[require("claude.terminal").get_active_slots()]])
+  MiniTest.expect.equality(active, { 1, 3 })
+end
+
+-- ============================================================================
 -- is_claude_buf()
 -- ============================================================================
 
