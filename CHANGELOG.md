@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/S1M0N38/claude.nvim/compare/v1.4.0...v1.4.1) (2026-02-13)
+
+
+### Bug Fixes
+
+* **terminal:** resolve type errors for nullable window handle ([3bbd442](https://github.com/S1M0N38/claude.nvim/commit/3bbd442b66cec5f101d4f606b91e5657326c11a9))
+
 ## [1.4.0](https://github.com/S1M0N38/claude.nvim/compare/v1.3.0...v1.4.0) (2026-02-10)
 
 
