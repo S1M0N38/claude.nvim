@@ -123,7 +123,7 @@ local function start_job(n)
 
         -- Delete the dead buffer (use a scratch buffer to keep the window valid)
         if vim.api.nvim_buf_is_valid(buf) then
-          if is_displayed then
+          if is_displayed and win then
             local scratch = vim.api.nvim_create_buf(false, true)
             vim.api.nvim_win_set_buf(win, scratch)
           end
@@ -131,6 +131,7 @@ local function start_job(n)
         end
 
         if is_displayed then
+          local w = win --[[@as integer]] -- win is valid when is_displayed is true
           local nearest = find_nearest_slot(n)
           if nearest then
             current = nearest
@@ -143,7 +144,7 @@ local function start_job(n)
               end
             end, 50)
           else
-            vim.api.nvim_win_close(win, true)
+            vim.api.nvim_win_close(w, true)
             win = nil
           end
         elseif win and vim.api.nvim_win_is_valid(win) then
