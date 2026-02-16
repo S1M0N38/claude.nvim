@@ -46,5 +46,5 @@ Get started by reading the comprehensive documentation with [`:help claude`](htt
 ## Acknowledgments
 
 - [base.nvim](https://github.com/S1M0N38/base.nvim): template used to bootstrap this plugin
-- [claudecode.nvim](https://github.com/S1M0N38/claudecode.nvim): Claude integration for Neovim
-- [sidekick.nvim](https://github.com/S1M0N38/sidekick.nvim): AI sidekick plugin for Neovim
+- [claudecode.nvim](https://github.com/coder/claudecode.nvim): Claude integration for Neovim
+- [sidekick.nvim](https://github.com/folke/sidekick.nvim): AI sidekick plugin for Neovim
