@@ -49,7 +49,7 @@ function M.send_selection(opts)
   terminal.send(text .. "\n")
 
   if not terminal.is_open() then
-    terminal.open()
+    terminal.open({ force_terminal = true })
   end
 end
 
@@ -68,7 +68,7 @@ function M.send_reference()
   terminal.send(ref)
 
   if not terminal.is_open() then
-    terminal.open()
+    terminal.open({ force_terminal = true })
   end
 end
 
