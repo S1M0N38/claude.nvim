@@ -154,6 +154,7 @@ local function start_job(n)
                 vim.api.nvim_set_current_win(w)
                 ---@diagnostic enable: need-check-nil
                 local state = saved_state[nearest]
+                local state = saved_state[nearest]
                 if state and state.mode == "t" then
                   vim.cmd("startinsert")
                 elseif not state then
