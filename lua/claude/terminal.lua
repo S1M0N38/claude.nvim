@@ -1,10 +1,6 @@
 ---@class Claude.Terminal
 local M = {}
 
----@diagnostic disable: need-check-nil
--- The type checker cannot narrow types for module-level variables accessed in closures.
--- We verify validity before use, but LuaLS doesn't understand this pattern.
-
 local slots = {} ---@type table<number, {buf: number, job: number?}>
 local current = 1
 local win = nil ---@type number?
@@ -96,8 +92,8 @@ local function ensure_window(buf)
   if win and vim.api.nvim_win_is_valid(win) then
     vim.api.nvim_win_set_buf(win, buf)
     vim.api.nvim_win_set_config(win, { title = build_title(), title_pos = "center" })
-    local w = win --[[@as integer]]
-    return w
+    ---@diagnostic disable-next-line: need-check-nil
+    return win
   else
     local w = vim.api.nvim_open_win(buf, true, float_opts())
     win = w
@@ -145,7 +141,8 @@ local function start_job(n)
         end
 
         if is_displayed then
-          local w = win --[[@as integer]] -- win is valid when is_displayed is true
+          ---@type integer
+          local w = win
           local nearest = find_nearest_slot(n)
           if nearest then
             current = nearest
@@ -195,6 +192,7 @@ end
 activate_slot = function(n, force_terminal)
   ensure_slot_buf(n)
   local slot = slots[n]
+  ---@type integer
   local w = ensure_window(slot.buf)
   if not slot.job then
     start_job(n)
