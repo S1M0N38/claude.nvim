@@ -1,6 +1,11 @@
 ---@class Claude.Terminal
 local M = {}
 
+---@diagnostic disable: need-check-nil
+-- LuaLS cannot narrow types for module-level variables accessed in closures.
+-- We verify validity (if w and vim.api.nvim_win_is_valid(w)) before use,
+-- but LuaLS doesn't understand this pattern with captured variables.
+
 local slots = {} ---@type table<number, {buf: number, job: number?}>
 local current = 1
 local win = nil ---@type number?
@@ -92,7 +97,6 @@ local function ensure_window(buf)
   if win and vim.api.nvim_win_is_valid(win) then
     vim.api.nvim_win_set_buf(win, buf)
     vim.api.nvim_win_set_config(win, { title = build_title(), title_pos = "center" })
-    ---@diagnostic disable-next-line: need-check-nil
     return win
   else
     local w = vim.api.nvim_open_win(buf, true, float_opts())
@@ -141,7 +145,6 @@ local function start_job(n)
         end
 
         if is_displayed then
-          ---@diagnostic disable-next-line: assign-type-mismatch
           local w = win --[[@as integer]]
           local nearest = find_nearest_slot(n)
           if nearest then
@@ -150,10 +153,7 @@ local function start_job(n)
             -- Terminal job just started; defer startinsert so the terminal has time to initialize
             vim.defer_fn(function()
               if w and vim.api.nvim_win_is_valid(w) then
-                ---@diagnostic disable: need-check-nil
                 vim.api.nvim_set_current_win(w)
-                ---@diagnostic enable: need-check-nil
-                local state = saved_state[nearest]
                 local state = saved_state[nearest]
                 if state and state.mode == "t" then
                   vim.cmd("startinsert")
@@ -206,9 +206,7 @@ activate_slot = function(n, force_terminal)
     -- Restore saved mode and cursor, or default to terminal mode
     local state = saved_state[n]
     if state then
-      ---@diagnostic disable: need-check-nil
       vim.api.nvim_win_set_cursor(w, state.cursor)
-      ---@diagnostic enable: need-check-nil
       if state.mode == "t" then
         vim.cmd("startinsert")
       end
