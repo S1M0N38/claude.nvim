@@ -14,6 +14,8 @@ M.defaults = {
     toggle = "<C-.>",
     picker = "<C-f>",
     explorer = "<C-e>",
+    nav_left = "<M-C-H>",
+    nav_right = "<M-C-L>",
   },
 }
 

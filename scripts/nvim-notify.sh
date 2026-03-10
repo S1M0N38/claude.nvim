@@ -51,7 +51,8 @@ PAYLOAD=$(echo "$INPUT" | jq -c '{
   notification_type: (.notification_type // "unknown"),
   title: (.title // ""),
   message: (.message // ""),
-  cwd: (.cwd // "")
+  cwd: (.cwd // ""),
+  slot: (env.CLAUDE_SLOT // "1")
 }')
 
 # Write payload to a temp file so we don't pass user data via command line

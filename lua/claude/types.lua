@@ -40,6 +40,8 @@
 ---@field toggle string Keymap for toggling the terminal
 ---@field picker string Keymap for opening file picker in terminal mode
 ---@field explorer string Keymap for opening file explorer in terminal mode
+---@field nav_left string Keymap for navigating to previous slot
+---@field nav_right string Keymap for navigating to next slot
 
 -- lua/claude/terminal.lua -------------------------------------------------------
 
@@ -54,6 +56,8 @@
 ---@field get_buf function get the current slot's terminal buffer number
 ---@field is_claude_buf fun(bufnr: number): boolean check if a buffer belongs to any slot
 ---@field get_active_slots fun(): number[] get all active slot numbers sorted ascending
+---@field nav_prev fun() switch to the previous active slot (circular)
+---@field nav_next fun() switch to the next active slot (circular)
 ---@field setup_keymaps function setup terminal-mode keymaps for a buffer
 
 -- lua/claude/send.lua -----------------------------------------------------------

@@ -4,6 +4,8 @@ local M = {}
 local slots = {} ---@type table<number, {buf: number, job: number?}>
 local current = 1
 local win = nil ---@type number?
+local indicators = {} ---@type table<number, string>
+local saved_state = {} ---@type table<number, {mode: string, cursor: {line: number, col: number}?>
 
 ---Get the slot entry for a given slot number (nil-safe)
 ---@param n? number: slot number (defaults to current)
@@ -13,20 +15,23 @@ local function get_slot(n)
 end
 
 ---Build the window title showing all active slots with current in brackets
----@return string: formatted title (e.g., " Claude [1] ", " Claude 1 [2] 3 ")
+---Includes notification indicators (!, ?, ✓) next to slot numbers
+---@return string: formatted title (e.g., " Claude [1] ", " Claude 1 [2!] 3? ")
 local function build_title()
   local slot_nums = M.get_active_slots()
 
   if #slot_nums == 0 then
-    return " Claude [" .. current .. "] "
+    local ind = indicators[current] or ""
+    return " Claude [" .. ind .. current .. "] "
   end
 
   local parts = {}
   for _, n in ipairs(slot_nums) do
+    local ind = indicators[n] or ""
     if n == current then
-      table.insert(parts, "[" .. n .. "]")
+      table.insert(parts, "[" .. ind .. n .. "]")
     else
-      table.insert(parts, tostring(n))
+      table.insert(parts, ind .. n)
     end
   end
 
@@ -106,7 +111,7 @@ local function start_job(n)
   local cmd = config.cmd
   local server = vim.v.servername
   if server and server ~= "" then
-    cmd = "NVIM_SERVER=" .. vim.fn.shellescape(server) .. " " .. cmd
+    cmd = "NVIM_SERVER=" .. vim.fn.shellescape(server) .. " CLAUDE_SLOT=" .. n .. " " .. cmd
   end
 
   local buf = slot.buf
@@ -140,7 +145,13 @@ local function start_job(n)
             vim.defer_fn(function()
               if win and vim.api.nvim_win_is_valid(win) then
                 vim.api.nvim_set_current_win(win)
-                vim.cmd("startinsert")
+                local state = saved_state[nearest]
+                if state and state.mode == "t" then
+                  vim.cmd("startinsert")
+                elseif not state then
+                  vim.cmd("startinsert")
+                end
+                -- If state.mode == "n", don't call startinsert
               end
             end, 50)
           else
@@ -171,25 +182,51 @@ end
 
 ---Activate a slot: ensure buffer exists, show it in the window, start job if needed
 ---@param n number: slot number
-activate_slot = function(n)
+---@param force_terminal? boolean: if true, always enter terminal mode
+activate_slot = function(n, force_terminal)
   ensure_slot_buf(n)
   local slot = slots[n]
   ensure_window(slot.buf)
   if not slot.job then
     start_job(n)
   end
-  vim.cmd("startinsert")
+
+  if force_terminal then
+    vim.cmd("startinsert")
+  else
+    -- Restore saved mode and cursor, or default to terminal mode
+    local state = saved_state[n]
+    if state then
+      vim.api.nvim_win_set_cursor(win, state.cursor)
+      if state.mode == "t" then
+        vim.cmd("startinsert")
+      end
+      -- If mode was "n", we're already in normal mode - do nothing
+    else
+      vim.cmd("startinsert")
+    end
+  end
 end
 
 ---Open the floating terminal (reuses existing buffer/job in current slot)
-function M.open()
-  activate_slot(current)
+---@param opts? table: options with force_terminal boolean
+function M.open(opts)
+  opts = opts or {}
+  activate_slot(current, opts.force_terminal)
 end
 
 ---Close the floating window (all slot processes keep running)
 function M.close()
   if win and vim.api.nvim_win_is_valid(win) then
-    if vim.fn.mode() == "t" then
+    -- Save current mode and cursor position
+    local mode = vim.fn.mode()
+    local cursor = vim.api.nvim_win_get_cursor(win)
+    saved_state[current] = {
+      mode = mode,
+      cursor = cursor,
+    }
+
+    if mode == "t" then
       vim.cmd("stopinsert")
     end
     vim.api.nvim_win_close(win, true)
@@ -212,6 +249,7 @@ function M.switch(n)
   if n < 1 or n > 9 then
     return
   end
+  indicators[n] = nil -- clear indicator when visiting
   current = n
   activate_slot(current)
 end
@@ -227,6 +265,26 @@ end
 function M.is_running()
   local slot = get_slot()
   return slot ~= nil and slot.job ~= nil
+end
+
+---Set the indicator symbol for a slot
+---@param n number: slot number
+---@param symbol string: indicator symbol (!, ?, ✓)
+function M.set_indicator(n, symbol)
+  indicators[n] = symbol
+end
+
+---Clear the indicator for a slot
+---@param n number: slot number
+function M.clear_indicator(n)
+  indicators[n] = nil
+end
+
+---Refresh the window title (noop if window not open)
+function M.refresh_title()
+  if win and vim.api.nvim_win_is_valid(win) then
+    vim.api.nvim_win_set_config(win, { title = build_title(), title_pos = "center" })
+  end
 end
 
 ---Get the current slot's terminal buffer number
@@ -257,6 +315,60 @@ function M.get_active_slots()
   end
   table.sort(slot_nums)
   return slot_nums
+end
+
+---Switch to the previous active slot (circular navigation)
+function M.nav_prev()
+  local active = M.get_active_slots()
+  if #active <= 1 then
+    return
+  end
+
+  local idx = nil
+  for i, n in ipairs(active) do
+    if n == current then
+      idx = i
+      break
+    end
+  end
+
+  if not idx then
+    idx = 1
+  else
+    idx = idx - 1
+    if idx < 1 then
+      idx = #active
+    end
+  end
+
+  M.switch(active[idx])
+end
+
+---Switch to the next active slot (circular navigation)
+function M.nav_next()
+  local active = M.get_active_slots()
+  if #active <= 1 then
+    return
+  end
+
+  local idx = nil
+  for i, n in ipairs(active) do
+    if n == current then
+      idx = i
+      break
+    end
+  end
+
+  if not idx then
+    idx = 1
+  else
+    idx = idx + 1
+    if idx > #active then
+      idx = 1
+    end
+  end
+
+  M.switch(active[idx])
 end
 
 ---Send text to the current slot's terminal
@@ -313,10 +425,19 @@ function M.setup_keymaps(bufnr)
 
   -- Slot-switching keymaps (<C-1> through <C-9>)
   for i = 1, 9 do
-    vim.keymap.set("t", "<C-" .. i .. ">", function()
+    vim.keymap.set({ "n", "t" }, "<C-" .. i .. ">", function()
       M.switch(i)
     end, { buffer = bufnr, desc = "Switch to Claude slot " .. i, silent = true })
   end
+
+  -- Relative navigation keymaps
+  vim.keymap.set("t", config.keymaps.nav_left, function()
+    M.nav_prev()
+  end, { buffer = bufnr, desc = "Navigate to previous Claude slot", silent = true })
+
+  vim.keymap.set("t", config.keymaps.nav_right, function()
+    M.nav_next()
+  end, { buffer = bufnr, desc = "Navigate to next Claude slot", silent = true })
 
   -- Double-Esc: find which slot owns this buffer for correct job targeting
   local esc_timer = nil
@@ -368,6 +489,7 @@ function M.setup_keymaps(bufnr)
       local n = slot_for_buf(bufnr)
       if n then
         slots[n] = nil
+        saved_state[n] = nil
       end
     end,
   })

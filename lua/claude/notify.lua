@@ -10,6 +10,15 @@ local level_map = {
   elicitation_dialog = vim.log.levels.WARN,
 }
 
+---Map notification types to indicator symbols
+---@type table<string, string>
+local indicator_map = {
+  permission_prompt = "!",
+  idle_prompt = "?",
+  elicitation_dialog = "?",
+  -- auth_success intentionally omitted (no indicator)
+}
+
 ---Process a notification from the Claude Code hook script.
 ---Called via nvim --remote-expr from scripts/nvim-notify.sh.
 ---@param path string: path to a temp file containing JSON payload
@@ -30,6 +39,21 @@ function M.from_hook(path)
   if dir == "" then
     dir = "claude"
   end
+
+  -- Determine slot number from payload (defaults to 1)
+  local slot = tonumber(data.slot) or 1
+
+  -- Set indicator based on event/type
+  local terminal = require("claude.terminal")
+  if event == "Notification" then
+    local indicator = indicator_map[data.notification_type]
+    if indicator then
+      terminal.set_indicator(slot, indicator)
+    end
+  elseif event == "Stop" then
+    terminal.set_indicator(slot, "✓")
+  end
+  terminal.refresh_title()
 
   local msg, level
 
