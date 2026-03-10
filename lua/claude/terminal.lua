@@ -87,12 +87,15 @@ end
 
 ---Ensure the float window is open and showing the given buffer
 ---@param buf number: buffer to display
+---@return integer win: the window handle
 local function ensure_window(buf)
   if win and vim.api.nvim_win_is_valid(win) then
     vim.api.nvim_win_set_buf(win, buf)
     vim.api.nvim_win_set_config(win, { title = build_title(), title_pos = "center" })
+    return win
   else
     win = vim.api.nvim_open_win(buf, true, float_opts())
+    return win
   end
 end
 
@@ -143,8 +146,7 @@ local function start_job(n)
             activate_slot(nearest)
             -- Terminal job just started; defer startinsert so the terminal has time to initialize
             vim.defer_fn(function()
-              if win and vim.api.nvim_win_is_valid(win) then
-                local w = win ---@type number
+              if w and vim.api.nvim_win_is_valid(w) then
                 vim.api.nvim_set_current_win(w)
                 local state = saved_state[nearest]
                 if state and state.mode == "t" then
@@ -187,7 +189,7 @@ end
 activate_slot = function(n, force_terminal)
   ensure_slot_buf(n)
   local slot = slots[n]
-  ensure_window(slot.buf)
+  local w = ensure_window(slot.buf)
   if not slot.job then
     start_job(n)
   end
@@ -198,7 +200,6 @@ activate_slot = function(n, force_terminal)
     -- Restore saved mode and cursor, or default to terminal mode
     local state = saved_state[n]
     if state then
-      local w = win ---@type number
       vim.api.nvim_win_set_cursor(w, state.cursor)
       if state.mode == "t" then
         vim.cmd("startinsert")
