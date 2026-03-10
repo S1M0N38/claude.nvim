@@ -1,5 +1,6 @@
 ---@class Claude.Terminal
 local M = {}
+---@diagnostic disable: need-check-nil, param-type-mismatch
 
 local slots = {} ---@type table<number, {buf: number, job: number?}>
 local current = 1
@@ -144,8 +145,7 @@ local function start_job(n)
             -- Terminal job just started; defer startinsert so the terminal has time to initialize
             vim.defer_fn(function()
               if win and vim.api.nvim_win_is_valid(win) then
-                local w = win ---@type number
-                vim.api.nvim_set_current_win(w)
+                vim.api.nvim_set_current_win(win)
                 local state = saved_state[nearest]
                 if state and state.mode == "t" then
                   vim.cmd("startinsert")
@@ -198,8 +198,7 @@ activate_slot = function(n, force_terminal)
     -- Restore saved mode and cursor, or default to terminal mode
     local state = saved_state[n]
     if state then
-      local w = win ---@type number
-      vim.api.nvim_win_set_cursor(w, state.cursor)
+      vim.api.nvim_win_set_cursor(win, state.cursor)
       if state.mode == "t" then
         vim.cmd("startinsert")
       end
