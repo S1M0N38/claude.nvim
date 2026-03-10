@@ -150,8 +150,9 @@ local function start_job(n)
             -- Terminal job just started; defer startinsert so the terminal has time to initialize
             vim.defer_fn(function()
               if w and vim.api.nvim_win_is_valid(w) then
-                ---@diagnostic disable-next-line: need-check-nil
+                ---@diagnostic disable: need-check-nil
                 vim.api.nvim_set_current_win(w)
+                ---@diagnostic enable: need-check-nil
                 local state = saved_state[nearest]
                 if state and state.mode == "t" then
                   vim.cmd("startinsert")
@@ -204,8 +205,9 @@ activate_slot = function(n, force_terminal)
     -- Restore saved mode and cursor, or default to terminal mode
     local state = saved_state[n]
     if state then
-      ---@diagnostic disable-next-line: need-check-nil
+      ---@diagnostic disable: need-check-nil
       vim.api.nvim_win_set_cursor(w, state.cursor)
+      ---@diagnostic enable: need-check-nil
       if state.mode == "t" then
         vim.cmd("startinsert")
       end
