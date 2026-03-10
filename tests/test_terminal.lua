@@ -603,4 +603,192 @@ T["is_claude_buf()"]["detects buffers from any slot"] = function()
   MiniTest.expect.equality(buf3_is_claude, true)
 end
 
+-- ============================================================================
+-- nav_prev() / nav_next()
+-- ============================================================================
+
+T["nav_prev()"] = MiniTest.new_set()
+
+T["nav_prev()"]["does nothing with single slot"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()
+    _G.buf_before = terminal.get_buf()
+    terminal.nav_prev()
+    _G.buf_after = terminal.get_buf()
+  ]])
+
+  local buf_before = child.lua_get([[_G.buf_before]])
+  local buf_after = child.lua_get([[_G.buf_after]])
+  MiniTest.expect.equality(buf_before, buf_after)
+end
+
+T["nav_prev()"]["does nothing with no slots"] = function()
+  child.lua([[require("claude.terminal").nav_prev()]])
+
+  local is_open = child.lua_get([[require("claude.terminal").is_open()]])
+  MiniTest.expect.equality(is_open, false)
+end
+
+T["nav_prev()"]["navigates to previous slot"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()      -- slot 1
+    terminal.switch(3)   -- slot 3
+    terminal.nav_prev()  -- should go to slot 1
+  ]])
+
+  local active = child.lua_get([[require("claude.terminal").get_active_slots()]])
+  MiniTest.expect.equality(active, { 1, 3 })
+
+  child.lua([[
+    local wins = vim.api.nvim_list_wins()
+    for _, w in ipairs(wins) do
+      local cfg = vim.api.nvim_win_get_config(w)
+      if cfg.relative == "editor" then
+        _G._test_title = cfg.title[1][1]
+      end
+    end
+  ]])
+  local title = child.lua_get([[_G._test_title]])
+  MiniTest.expect.equality(title, " Claude [1] 3 ")
+end
+
+T["nav_prev()"]["wraps from first to last slot (circular)"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()      -- slot 1
+    terminal.switch(3)   -- slot 3
+    terminal.switch(1)   -- back to slot 1
+    terminal.nav_prev()  -- should wrap to slot 3
+  ]])
+
+  child.lua([[
+    local wins = vim.api.nvim_list_wins()
+    for _, w in ipairs(wins) do
+      local cfg = vim.api.nvim_win_get_config(w)
+      if cfg.relative == "editor" then
+        _G._test_title = cfg.title[1][1]
+      end
+    end
+  ]])
+  local title = child.lua_get([[_G._test_title]])
+  MiniTest.expect.equality(title, " Claude 1 [3] ")
+end
+
+T["nav_prev()"]["only navigates through active slots"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()      -- slot 1
+    terminal.switch(5)   -- slot 5 (skips 2, 3, 4)
+    terminal.nav_prev()  -- should go to slot 1
+  ]])
+
+  local active = child.lua_get([[require("claude.terminal").get_active_slots()]])
+  MiniTest.expect.equality(active, { 1, 5 })
+
+  child.lua([[
+    local wins = vim.api.nvim_list_wins()
+    for _, w in ipairs(wins) do
+      local cfg = vim.api.nvim_win_get_config(w)
+      if cfg.relative == "editor" then
+        _G._test_title = cfg.title[1][1]
+      end
+    end
+  ]])
+  local title = child.lua_get([[_G._test_title]])
+  MiniTest.expect.equality(title, " Claude [1] 5 ")
+end
+
+T["nav_next()"] = MiniTest.new_set()
+
+T["nav_next()"]["does nothing with single slot"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()
+    _G.buf_before = terminal.get_buf()
+    terminal.nav_next()
+    _G.buf_after = terminal.get_buf()
+  ]])
+
+  local buf_before = child.lua_get([[_G.buf_before]])
+  local buf_after = child.lua_get([[_G.buf_after]])
+  MiniTest.expect.equality(buf_before, buf_after)
+end
+
+T["nav_next()"]["does nothing with no slots"] = function()
+  child.lua([[require("claude.terminal").nav_next()]])
+
+  local is_open = child.lua_get([[require("claude.terminal").is_open()]])
+  MiniTest.expect.equality(is_open, false)
+end
+
+T["nav_next()"]["navigates to next slot"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()      -- slot 1
+    terminal.switch(3)   -- slot 3
+    terminal.switch(1)   -- back to slot 1
+    terminal.nav_next()  -- should go to slot 3
+  ]])
+
+  child.lua([[
+    local wins = vim.api.nvim_list_wins()
+    for _, w in ipairs(wins) do
+      local cfg = vim.api.nvim_win_get_config(w)
+      if cfg.relative == "editor" then
+        _G._test_title = cfg.title[1][1]
+      end
+    end
+  ]])
+  local title = child.lua_get([[_G._test_title]])
+  MiniTest.expect.equality(title, " Claude 1 [3] ")
+end
+
+T["nav_next()"]["wraps from last to first slot (circular)"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()      -- slot 1
+    terminal.switch(3)   -- slot 3 (current, also the last)
+    terminal.nav_next()  -- should wrap to slot 1
+  ]])
+
+  child.lua([[
+    local wins = vim.api.nvim_list_wins()
+    for _, w in ipairs(wins) do
+      local cfg = vim.api.nvim_win_get_config(w)
+      if cfg.relative == "editor" then
+        _G._test_title = cfg.title[1][1]
+      end
+    end
+  ]])
+  local title = child.lua_get([[_G._test_title]])
+  MiniTest.expect.equality(title, " Claude [1] 3 ")
+end
+
+T["nav_next()"]["only navigates through active slots"] = function()
+  child.lua([[
+    local terminal = require("claude.terminal")
+    terminal.open()      -- slot 1
+    terminal.switch(5)   -- slot 5 (skips 2, 3, 4)
+    terminal.switch(1)   -- back to slot 1
+    terminal.nav_next()  -- should go to slot 5 (skipping 2, 3, 4)
+  ]])
+
+  local active = child.lua_get([[require("claude.terminal").get_active_slots()]])
+  MiniTest.expect.equality(active, { 1, 5 })
+
+  child.lua([[
+    local wins = vim.api.nvim_list_wins()
+    for _, w in ipairs(wins) do
+      local cfg = vim.api.nvim_win_get_config(w)
+      if cfg.relative == "editor" then
+        _G._test_title = cfg.title[1][1]
+      end
+    end
+  ]])
+  local title = child.lua_get([[_G._test_title]])
+  MiniTest.expect.equality(title, " Claude 1 [5] ")
+end
+
 return T
