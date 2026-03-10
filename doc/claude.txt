@@ -95,6 +95,8 @@ Default options: ~
       toggle = "<C-.>",     -- Keymap for toggling the terminal
       picker = "<C-f>",     -- Keymap for file picker (requires snacks.nvim)
       explorer = "<C-e>",   -- Keymap for file explorer (requires mini.files)
+      nav_left = "<M-C-H>", -- Keymap for previous slot (terminal mode)
+      nav_right = "<M-C-L>",-- Keymap for next slot (terminal mode)
     },
   }
 <
@@ -112,11 +114,9 @@ float ~
 
                                                       *claude-config-keymaps*
 keymaps ~
-  When `keymaps.enabled` is true, the plugin sets:
-  - `<C-.>` (normal mode) to toggle the floating terminal
-  - `<C-.>` (terminal mode, inside the Claude buffer) to toggle the terminal
-  - `<Esc><Esc>` (terminal mode, inside the Claude buffer) to exit terminal
-    mode (see |claude-keymaps|)
+  When `keymaps.enabled` is true, the plugin sets default keymaps for
+  toggling the terminal and file browsing. See |claude-keymaps| for the full
+  list of keymaps including slot switching and navigation.
 
   Set `keymaps.enabled = false` to disable all default keymaps and define
   your own using the |claude-api|.
@@ -158,14 +158,19 @@ When `keymaps.enabled` is true (the default), the following keymaps are set:
 Normal mode: ~
 
   `<C-.>`      Toggle the Claude floating terminal     |:ClaudeToggle|
-  `<C-f>`      Open file picker                        |:ClaudeExplorer|
-  `<C-e>`      Open file explorer                      |:ClaudeExplorer|
 
 Terminal mode (Claude buffer only): ~
 
   `<C-.>`      Toggle the Claude floating terminal     |:ClaudeToggle|
   `<C-1>`..`<C-9>` Switch to slot 1-9                  |claude-slots|
+  `<C-f>`      Open file picker                        |claude.pick_files()|
+  `<C-e>`      Open file explorer                      |claude.browse_files()|
+  `<M-C-H>`    Navigate to previous slot (circular)    |claude-slots|
+  `<M-C-L>`    Navigate to next slot (circular)        |claude-slots|
   `<Esc><Esc>` Exit terminal mode (return to normal mode)
+
+Note: `<M-C-H>` means Meta+Ctrl+H (Alt+Ctrl+H on most keyboards). On macOS,
+this may be Option+Ctrl+H.
 
 Single Escape behavior: ~
 
@@ -189,25 +194,81 @@ Filetype: ~
 <
 
 ================================================================================
+SLOTS                                                            *claude-slots*
+
+claude.nvim supports up to 9 independent Claude Code terminal sessions
+running simultaneously. Each slot (1-9) maintains its own terminal buffer
+and Claude Code process.
+
+Title bar indicators: ~
+
+  The floating window title shows all active slots with the current slot
+  in brackets. Notification indicators appear next to slot numbers:
+
+    `Claude [1]`              -- Only slot 1 is active, it's current
+    `Claude 1 [2!] 3?`        -- Slots 1, 2, 3 active; slot 2 is current
+                               -- Slot 2 has a "!" indicator, slot 3 has "?"
+
+  Indicators are set by notification hooks:
+    `!`  Permission prompt or elicitation dialog (needs attention)
+    `?`  Idle prompt (Claude is waiting for input)
+    `✓`  Task completed (Stop event)
+
+  Visiting a slot clears its indicator.
+
+Slot switching: ~
+
+  `<C-1>`..`<C-9>` (normal/terminal mode)
+    Switch directly to a specific slot. Creates a new Claude Code process
+    if the slot is empty. All processes keep running in the background.
+
+  `<M-C-H>` / `<M-C-L>` (terminal mode only)
+    Navigate to previous/next active slot in a circular manner.
+    Skips inactive slots.
+
+Slot environment: ~
+
+  When spawning a Claude Code process in a slot, the `CLAUDE_SLOT`
+  environment variable is set to the slot number. This allows notification
+  hooks to target the correct slot for indicators.
+
+Usage example: ~
+
+  1. Press `<C-.>` to open slot 1
+  2. Start a long-running task
+  3. Press `<C-2>` to create and switch to slot 2
+  4. Work on a different task in slot 2
+  5. Press `<M-C-H>` to return to slot 1
+  6. Both sessions remain running independently
+
+================================================================================
 FILE EXPLORER                                                 *claude-explorer*
 
 claude.nvim provides two ways to browse files and send references to Claude.
 
-                                                            *:ClaudeExplorer*
-:ClaudeExplorer ~
-  Open a file explorer to browse and select files. The selected file path is
-  sent as a reference (@path format) to the Claude terminal. This command
-  requires mini.files and opens an interactive file browser.
+                                                          *claude.browse_files()*
+browse_files() ~
+  Open a file explorer to browse and select files using mini.files. The
+  selected file path is sent as a reference (@path format) to the Claude
+  terminal.
 
-                                                              *:ClaudePicker*
-:ClaudePicker ~
-  Open a file picker to search and select files. This command requires
-  snacks.nvim and provides a searchable file picker interface. The selected
-  file path is sent as a reference (@path format) to the Claude terminal.
+>lua
+  require("claude.explorer").browse_files()
+<
+
+                                                            *claude.pick_files()*
+pick_files() ~
+  Open a file picker to search and select files using snacks.nvim. The
+  selected file path is sent as a reference (@path format) to the Claude
+  terminal.
+
+>lua
+  require("claude.picker").pick_files()
+<
 
 Default keymaps: ~
 
-  Normal mode:
+  Terminal mode (Claude buffer only):
     `<C-e>`      Open file explorer (explorer feature)
     `<C-f>`      Open file picker (picker feature)
 
@@ -272,14 +333,29 @@ Setup: ~
 
 How it works: ~
 
-  1. When the floating terminal opens, `NVIM_SERVER` is set to Neovim's
-     RPC socket path (`vim.v.servername`).
+  1. When a floating terminal opens for slot N, two environment variables are
+     set in the Claude Code process:
+     - `NVIM_SERVER`: Neovim's RPC socket path (`vim.v.servername`)
+     - `CLAUDE_SLOT`: The slot number (1-9)
   2. Claude Code triggers `Notification` or `Stop` hook events.
   3. `nvim-notify.sh` reads JSON from stdin, extracts relevant fields using
      `jq`, writes them to a temp file, and calls back into Neovim via
      `nvim --server $NVIM_SERVER --remote-expr`.
   4. The Lua function `require("claude.notify").from_hook()` reads the temp
-     file, decodes the JSON, and calls `vim.notify()`.
+     file, decodes the JSON, determines the slot from the payload, and calls
+     `vim.notify()`. The slot number is extracted from the `slot` field in
+     the JSON payload.
+
+Notification indicators: ~
+
+  The hook system sets visual indicators in the title bar for each slot:
+
+    `!`  Permission prompt or elicitation dialog (needs attention)
+    `?`  Idle prompt (Claude is waiting for input)
+    `✓`  Task completed (Stop event)
+
+  Indicators are cleared when you visit the slot. See |claude-slots| for
+  details on the title bar format.
 
 Notification types and levels: ~
 
@@ -399,6 +475,8 @@ The health check validates:
 - Configuration options are valid
 - `jq` is available (for notification hooks)
 - Neovim server socket is available (for notification hooks)
+- `snacks.nvim` is available (optional, enables file picker)
+- `mini.files` is available (optional, enables file explorer)
 
 Terminal does not open: ~
 
@@ -424,6 +502,21 @@ Terminal process keeps running: ~
   only hides the window. The Claude Code process continues in the background.
   Reopening the terminal restores the same session. The process is cleaned up
   when the terminal buffer is deleted or when you quit Neovim.
+
+Slot navigation keymaps not working: ~
+
+  The default navigation keymaps `<M-C-H>` and `<M-C-L>` use Meta+Ctrl which
+  may not work on all terminals or keyboards. On macOS, Meta is usually Option.
+  If these keymaps don't work, you can remap them in your config:
+
+>lua
+  require("claude").setup({
+    keymaps = {
+      nav_left = "<C-[>",
+      nav_right = "<C-]>",
+    },
+  })
+<
 
 ================================================================================
 vim:tw=78:ts=8:et:ft=help:norl:
