@@ -5,7 +5,7 @@ local slots = {} ---@type table<number, {buf: number, job: number?}>
 local current = 1
 local win = nil ---@type number?
 local indicators = {} ---@type table<number, string>
-local saved_state = {} ---@type table<number, {mode: string, cursor: {line: number, col: number}?>
+local saved_state = {} ---@type table<number, {mode: string, cursor: {line: integer, col: integer}}>?
 
 ---Get the slot entry for a given slot number (nil-safe)
 ---@param n? number: slot number (defaults to current)
