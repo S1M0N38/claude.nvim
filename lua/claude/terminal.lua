@@ -141,8 +141,8 @@ local function start_job(n)
         end
 
         if is_displayed then
-          ---@type integer
-          local w = win
+          ---@diagnostic disable-next-line: assign-type-mismatch
+          local w = win --[[@as integer]]
           local nearest = find_nearest_slot(n)
           if nearest then
             current = nearest
@@ -192,7 +192,6 @@ end
 activate_slot = function(n, force_terminal)
   ensure_slot_buf(n)
   local slot = slots[n]
-  ---@type integer
   local w = ensure_window(slot.buf)
   if not slot.job then
     start_job(n)
