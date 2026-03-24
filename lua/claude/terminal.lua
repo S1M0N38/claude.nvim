@@ -166,6 +166,7 @@ local function start_job(n)
           else
             vim.api.nvim_win_close(w, true)
             win = nil
+            current = 1 -- Reset to first slot when all instances closed
           end
         elseif win and vim.api.nvim_win_is_valid(win) then
           vim.api.nvim_win_set_config(win, { title = build_title(), title_pos = "center" })
